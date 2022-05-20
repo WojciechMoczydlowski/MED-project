@@ -1,6 +1,9 @@
 from collections import defaultdict
 from itertools import chain, combinations
 
+# from apriori.taxonomy import read_taxonomy_data
+from transactions.transactions import read_transaction_data
+
 
 def get_support(item, transaction_list, frequent_set):
     return float(frequent_set[item]) / len(transaction_list)
@@ -34,22 +37,14 @@ def return_items_with_min_support(item_set, transaction_list, min_support, freq_
     return _item_set
 
 
-def read_transaction_data(file_name):
-    transaction_list = list()
+def prepare_single_set(transaction_list):
     item_set = set()
 
-    with open(file_name) as f:
-        for line in f:  # read rest of lines
-            arr = []
+    for transaction in transaction_list:
+        for item in transaction:
+            item_set.add(frozenset([int(item)]))
 
-            for x in line.split():
-                arr.append(int(x))
-                item_set.add(frozenset([int(x)]))
-
-            transaction = frozenset(arr)
-            transaction_list.append(transaction)
-
-    return transaction_list, item_set
+    return item_set
 
 
 def mk_subsets(arr):
@@ -85,11 +80,9 @@ def print_results(items, rules):
         print("Rule: %s ==> %s , %.3f" % (str(pre), str(post), confidence))
 
 
-def run_apriori(min_support, min_conf):
-    file_name = "../data/data.txt"
+def run_apriori(min_support, min_conf, transaction_list):
 
-    print("Data is reading")
-    transaction_list, item_set = read_transaction_data(file_name)
+    item_set = prepare_single_set(transaction_list)
 
     frequent_set = defaultdict(int)
     large_set = dict()
@@ -112,4 +105,9 @@ def run_apriori(min_support, min_conf):
     print_results(item, rules)
 
 
-run_apriori(0.01, 0.01)
+# run_apriori(0.01, 0.01)
+
+
+# tax = read_taxonomy_data()
+
+print("Tax")
