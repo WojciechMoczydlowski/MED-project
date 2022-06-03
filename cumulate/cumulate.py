@@ -1,6 +1,50 @@
 from collections import defaultdict
 from itertools import chain, combinations
 
+### Cumulate improvement ###
+
+# First improvement
+
+# Second improvement
+
+
+def precompute_ancestors(taxonomy):
+    _taxonomy = dict()
+
+    arr = []
+
+    for item in taxonomy:
+        key = item
+        value = taxonomy.get(item)
+
+        while value is not None:
+            arr.append(value)
+            value = taxonomy.get(value)
+
+        _taxonomy[key] = frozenset(arr)
+
+    return _taxonomy
+
+# Third improvement
+
+
+def filter_items_with_ancestor(item_set, taxonomy):
+    _item_set = set()
+
+    for item in item_set:
+        if len(item) != 2:
+            return item_set
+
+        first_element = item[0]
+        second_element = item[1]
+
+        ancestor_set = taxonomy.get(first_element)
+
+        if second_element in ancestor_set:
+            _item_set.add(item)
+
+    return _item_set
+
 
 def get_support(item, transaction_list, frequent_set):
     return float(frequent_set[item]) / len(transaction_list)
@@ -18,6 +62,7 @@ def return_items_with_min_support(item_set, transaction_list, min_support, freq_
 
     for item in item_set:
         for transaction in transaction_list:
+            a = item.issubset(transaction)
             if item.issubset(transaction):
                 freq_set[item] += 1
                 local_set[item] += 1
@@ -68,12 +113,16 @@ def mk_rules(large_set, min_conf, transaction_list, frequent_set):
 
 
 def print_results(items, rules):
+    # for item, support in sorted(items, key=lambda x: x[1]):
+    #     print("item: %s , %.3f" % (str(item), support))
+    print("\n------------------------ RULES:")
     for rule, confidence in sorted(rules, key=lambda x: x[1]):
         pre, post = rule
-        print("{%s} -> {%s}" % (str(pre), str(post)))
+        print("Rule: %s ==> %s , %.3f" % (str(pre), str(post), confidence))
 
 
-def run_apriori(min_support, min_conf, transaction_list):
+def run_cumulate(min_support, min_conf, transaction_list, taxonomy):
+    # _taxonomy = precompute_ancestors(taxonomy)
 
     item_set = prepare_single_set(transaction_list)
 
@@ -88,6 +137,11 @@ def run_apriori(min_support, min_conf, transaction_list):
 
     while current_l_set != set([]):
         print("Processing iteration:", k)
+
+        # First improvement
+        if k == 2:
+            item_set = filter_items_with_ancestor(item_set, taxonomy)
+
         large_set[k - 1] = current_l_set
         current_c_set = join_set(current_l_set, k)
         current_l_set = return_items_with_min_support(current_c_set, transaction_list, min_support, frequent_set)
@@ -96,4 +150,3 @@ def run_apriori(min_support, min_conf, transaction_list):
     item, rules = mk_rules(large_set, min_conf, transaction_list, frequent_set)
 
     print_results(item, rules)
-    print("Rules amount: ", len(rules))
